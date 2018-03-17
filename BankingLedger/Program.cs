@@ -8,7 +8,6 @@ namespace BankingLedger
 {
     class Program
     {
-
         /*
             -Create a new account
             -Login
@@ -20,41 +19,16 @@ namespace BankingLedger
         */
         static void Main(string[] args)
         {
-            // Give option to create account or login
-            Console.WriteLine(" -=Welcome to Local Bank!=- ");
-            Console.WriteLine("Login              : Press 1");
-            Console.WriteLine("Create New Account : Press 2");
-            ConsoleKeyInfo cki;
-            do
+            Dictionary<String, UserAccount> userAccounts = new Dictionary<String, UserAccount>();
+            Boolean quit = false;
+            while (!quit)
             {
-                cki = Console.ReadKey(true);
-                if(cki.Key != ConsoleKey.D1 && cki.Key != ConsoleKey.D2)
-                {
-                    Console.WriteLine(cki.Key.ToString() + " is an invalid selection.");
-                }
-                
-            } while (cki.Key != ConsoleKey.D1 && cki.Key != ConsoleKey.D2);
-
-            // TODO this needs to happen in a better place with more control on when it runs
-            UserInfo userInfo = getUserInfoForNewAccount();
-            // TODO print congrats message for making new account
-            Console.WriteLine("username entered was: " + userInfo.Username); // TODO delete in final version
-            Console.WriteLine("password entered was: " + userInfo.Password); // TODO delete in final version
-            #if DEBUG
-            Console.WriteLine("Press enter to close...");
-            Console.ReadKey();
-            #endif
-            // State = List of User Accounts
-            // User Account has
-            // balance
-            // history
-            // user info
-            // username
-            // password
-
-
-            // If account created then login automatically
-            // If login -> login questions -> if accepted then login else back to login or create new account
+                UserAccount userAccount = runMainMenu(userAccounts, out quit);
+                //runUserAccountMenu();
+            }
+            
+            
+            // TODO Display main menu
             // Once logged in then display main menu (After each operation performed except 5 display menu again)
             // 1) Deposit -> print old balance, update balance, print new balance
             // 2) Withdrawal -> print old balance, update balance, print new balance
@@ -62,42 +36,112 @@ namespace BankingLedger
             // 3) Check Balance -> print balance
             // 4) Transaction History -> print history
             // 5) Log out -> Goes back to main menu options
+
+
+            // If account created then login automatically
+            // If login -> login questions -> if accepted then login else back to login or create new account
+
             // 
-
-
-
-
-
-
+            #if DEBUG
+            Console.WriteLine("Press enter to close...");
+            Console.ReadKey();
+            #endif
         }
 
-        private static UserInfo getUserInfoForNewAccount()
+        private static UserAccount runMainMenu(Dictionary<String, UserAccount> userAccounts, out Boolean quit)
         {
-            UserInfo userInfo = new UserInfo();
-            String username, password = String.Empty;
-            Console.WriteLine("Please enter username");
-            username = Console.ReadLine();
-            userInfo.Username = username;
-            while (password == null || password == String.Empty)
+            // Main menu gives option to login or create a new account
+            UserAccount userAccount = null;
+            Boolean loggedIn = false;
+            quit = false;
+            while (!loggedIn)
             {
-                password = gatherPasswordForNewAccount();
+                ConsoleKeyInfo cki = grabUserMainMenuChoice();
+
+                // Retrieve account information
+                if(cki.Key == ConsoleKey.D1)
+                {
+                    userAccount = loginUser(userAccounts, out loggedIn);
+                    if (!loggedIn)
+                    {
+                        Console.WriteLine("Incorrect username or password");
+                    }
+                }
+                else if (cki.Key == ConsoleKey.D2)
+                {
+                    UserInfo userInfo = grabUserInfo(true, out loggedIn);
+                    userAccount = new UserAccount(userInfo);
+                    userAccounts.Add(userInfo.Username, userAccount);
+                } else
+                {
+                    quit = true;
+                    break;
+                }
             }
-            userInfo.Password = password;
-            return userInfo;
+            return userAccount;
         }
 
-        private static String gatherPasswordForNewAccount()
+        private static UserAccount loginUser(Dictionary<string, UserAccount> userAccounts, out Boolean success)
         {
-            String password = String.Empty;
-            Console.WriteLine("Please enter password");
+            UserInfo userInfo = grabUserInfo(false, out success);
+            if (userAccounts.ContainsKey(userInfo.Username))
+            {
+                UserAccount account;
+                success = userAccounts.TryGetValue(userInfo.Username, out account);
+                return account;
+            } else
+            {
+                success = false;
+                return null;
+            }
+        }
+
+        private static ConsoleKeyInfo grabUserMainMenuChoice()
+        {
+            Console.WriteLine(" -=Welcome to Local Bank!=- ");
+            Console.WriteLine("Login              : Press 1");
+            Console.WriteLine("Create New Account : Press 2");
+            Console.WriteLine("Quit               : Press 3");
             ConsoleKeyInfo cki;
             do
             {
                 cki = Console.ReadKey(true);
-                password += cki.KeyChar;
-            } while (cki.Key != ConsoleKey.Enter);
+                if (cki.Key != ConsoleKey.D1 && cki.Key != ConsoleKey.D2)
+                {
+                    Console.WriteLine(cki.Key.ToString() + " is an invalid selection.");
+                }
+
+            } while (cki.Key != ConsoleKey.D1 && cki.Key != ConsoleKey.D2);
+            return cki;
+        }
+
+        private static UserInfo grabUserInfo(Boolean newAccount, out Boolean success)
+        {
+            UserInfo userInfo = new UserInfo();
+            String password = String.Empty;
+            success = true;
+            userInfo.Username = gatherUserName();
+            password = newAccount ? gatherPasswordForNewAccount(out success) : gatherPassword();
+            userInfo.Password = password;
+            // TODO print congrats message for making new account
+            Console.WriteLine("username entered was: " + userInfo.Username); // TODO delete in final version
+            Console.WriteLine("password entered was: " + userInfo.Password); // TODO delete in final version
+            return userInfo;
+        }
+
+        private static string gatherUserName()
+        {
+            string username;
+            Console.WriteLine("Please enter username");
+            username = Console.ReadLine();
+            return username;
+        }
+
+        private static String gatherPasswordForNewAccount(out Boolean success)
+        {
+            String passwordToValidate = gatherPassword();
+            String reenteredPassword = String.Empty;
             Console.WriteLine("Please enter password again to validate");
-            String validatePassword = String.Empty;
             int counter = 0;
             do
             {
@@ -106,22 +150,31 @@ namespace BankingLedger
                     Console.WriteLine("Please re-enter password");
                 }
 
-                validatePassword = String.Empty;
+                reenteredPassword = gatherPassword();
+                if (!reenteredPassword.Equals(passwordToValidate))
+                {
+                    Console.WriteLine("The passwords entered don't match");
+                }
+                counter++;
+            } while (!reenteredPassword.Equals(passwordToValidate) && counter < 3); // 3 is number of attempts to match first pw
+            success = reenteredPassword.Equals(passwordToValidate);
+            return passwordToValidate;
+        }
+
+        private static String gatherPassword()
+        {
+            String password = String.Empty;
+            ConsoleKeyInfo cki = new ConsoleKeyInfo();
+            while (password == null || password == String.Empty)
+            {
+                Console.WriteLine("Please enter password");
                 do
                 {
                     cki = Console.ReadKey(true);
-                    validatePassword += cki.KeyChar;
+                    password += cki.KeyChar;
                 } while (cki.Key != ConsoleKey.Enter);
-                if (!validatePassword.Equals(password))
-                {
-                    Console.WriteLine("The passwords entered don't match");
-                } else
-                {
-                    return password;
-                }
-                counter++;
-            } while (!validatePassword.Equals(password) && counter < 3); // 3 is number of attempts to match first pw
-            return null;
+            }
+            return password;
         }
     }
 }
