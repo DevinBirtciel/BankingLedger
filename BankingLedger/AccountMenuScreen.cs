@@ -7,9 +7,11 @@ namespace BankingLedger
     {
         public static void runAccountMenu(UserAccount userAccount)
         {
+            String username = userAccount.UserInfo.Username;
+            userAccount.History += username + " logged in\n";
+            Console.WriteLine("You are logged in as " + username);
             while (true)
             {
-                String username = userAccount.UserInfo.Username;
                 // Once logged in then display main menu (After each operation performed except 5 display menu again)
                 ConsoleKeyInfo cki = grabUserAccountChoice(userAccount);
                 // 1) Deposit -> print old balance, update balance, print new balance
