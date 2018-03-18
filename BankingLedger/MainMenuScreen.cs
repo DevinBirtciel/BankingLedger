@@ -98,23 +98,28 @@ namespace BankingLedger
             do
             {
                 Console.Clear();
-                Console.WriteLine(" -=Welcome to Local Bank!=- ");
+                Console.WriteLine(" -= Welcome to Bank Ledger! =- ");
                 Console.WriteLine("Login              : Press 1");
                 Console.WriteLine("Create New Account : Press 2");
                 Console.WriteLine("Quit               : Press 3");
                 cki = Console.ReadKey(true);
-                if (cki.Key != ConsoleKey.D1 && cki.Key != ConsoleKey.D2 && cki.Key != ConsoleKey.D3)
+                if (aValidKey(ref cki))
                 {
                     Console.WriteLine(cki.Key.ToString() + " is an invalid selection.");
-                    #if DEBUG
+#if DEBUG
                     Console.WriteLine("Press enter to return to main menu...");
                     Console.ReadKey();
                     continue;
-                    #endif
+#endif
                 }
 
-            } while (cki.Key != ConsoleKey.D1 && cki.Key != ConsoleKey.D2 && cki.Key != ConsoleKey.D3);
+            } while (aValidKey(ref cki));
             return cki;
+        }
+
+        private static bool aValidKey(ref ConsoleKeyInfo cki)
+        {
+            return cki.Key != ConsoleKey.D1 && cki.Key != ConsoleKey.D2 && cki.Key != ConsoleKey.D3;
         }
 
         private static UserInfo grabUserInfo(Boolean newAccount, out Boolean success)

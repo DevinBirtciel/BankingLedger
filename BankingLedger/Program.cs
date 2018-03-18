@@ -25,17 +25,12 @@ namespace BankingLedger
             while (!quit)
             {
                 userAccount = MainMenuScreen.runMainMenu(userAccounts, out quit);
+                if(!quit && userAccount != null)
+                {
+                    AccountMenuScreen.runAccountMenu(userAccount);
+                }
                 Console.WriteLine("Thanks for using our bank ledger software!");
-                //runUserAccountMenu();
             }
-            
-            // Once logged in then display main menu (After each operation performed except 5 display menu again)
-            // 1) Deposit -> print old balance, update balance, print new balance
-            // 2) Withdrawal -> print old balance, update balance, print new balance
-            // Do we want to allow negative balances? Fees? Disallow them?
-            // 3) Check Balance -> print balance
-            // 4) Transaction History -> print history
-            // 5) Log out -> Goes back to main menu options
 
             #if DEBUG
             Console.WriteLine("Press enter to close...");
