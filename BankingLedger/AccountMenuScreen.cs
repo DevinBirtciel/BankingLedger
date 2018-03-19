@@ -20,6 +20,7 @@ namespace BankingLedger
                     Console.WriteLine("Depositing for: " + username);
                     Console.WriteLine("Please enter amount to deposit: ");
                     String amountStr = Console.ReadLine();
+                    // TODO handle non double input
                     double amount = double.Parse(amountStr, CultureInfo.InvariantCulture);
                     userAccount.Balance += amount;
                     String transaction = buildTransactionStatement("Deposited ", amount, userAccount.Balance, username);
@@ -44,6 +45,10 @@ namespace BankingLedger
                             + " due to insufficient funds of " 
                             + userAccount.Balance.ToString("C", CultureInfo.CurrentCulture);
                         Console.WriteLine("Please add more funds or withdraw a smaller amount to complete transaction.");
+#if DEBUG
+                        Console.WriteLine("Press enter to return to account menu...");
+                        Console.ReadKey();
+#endif
                         continue;
                     }
                     userAccount.Balance -= amount;
