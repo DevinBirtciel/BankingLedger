@@ -20,12 +20,19 @@ namespace BankingLedger
                     Console.WriteLine("Depositing for: " + username);
                     Console.WriteLine("Please enter amount to deposit: ");
                     String amountStr = Console.ReadLine();
-                    // TODO handle non double input
-                    double amount = double.Parse(amountStr, CultureInfo.InvariantCulture);
-                    userAccount.Balance += amount;
-                    String transaction = buildTransactionStatement("Deposited ", amount, userAccount.Balance, username);
-                    Console.WriteLine(transaction);
-                    userAccount.History += transaction + "\n";
+                    Boolean result = double.TryParse(amountStr, out double amount);
+                    if (result)
+                    {
+                        amount = double.Parse(amountStr, CultureInfo.InvariantCulture);
+                        userAccount.Balance += amount;
+                        String transaction = buildTransactionStatement("Deposited ", amount, userAccount.Balance, username);
+                        Console.WriteLine(transaction);
+                        userAccount.History += transaction + "\n";
+                    }
+                    else
+                    {
+                        Console.WriteLine("Please enter a valid input next time.");
+                    }
 #if DEBUG
                     Console.WriteLine("Press enter to return to account menu...");
                     Console.ReadKey();
@@ -37,24 +44,32 @@ namespace BankingLedger
                     Console.WriteLine("Withdrawing for: " + username);
                     Console.WriteLine("Please enter amount to withdraw: ");
                     String amountStr = Console.ReadLine();
-                    double amount = double.Parse(amountStr, CultureInfo.InvariantCulture);
-                    if(amount > userAccount.Balance)
+                    Boolean result = double.TryParse(amountStr, out double amount);
+                    if (result)
                     {
-                        userAccount.History += username + " was unable to withdraw " 
-                            + amount.ToString("C", CultureInfo.CurrentCulture) 
-                            + " due to insufficient funds of " 
-                            + userAccount.Balance.ToString("C", CultureInfo.CurrentCulture);
-                        Console.WriteLine("Please add more funds or withdraw a smaller amount to complete transaction.");
+                        amount = double.Parse(amountStr, CultureInfo.InvariantCulture);
+                        if (amount > userAccount.Balance)
+                        {
+                            userAccount.History += username + " was unable to withdraw "
+                                + amount.ToString("C", CultureInfo.CurrentCulture)
+                                + " due to insufficient funds of "
+                                + userAccount.Balance.ToString("C", CultureInfo.CurrentCulture);
+                            Console.WriteLine("Please add more funds or withdraw a smaller amount to complete transaction.");
 #if DEBUG
-                        Console.WriteLine("Press enter to return to account menu...");
-                        Console.ReadKey();
+                            Console.WriteLine("Press enter to return to account menu...");
+                            Console.ReadKey();
 #endif
-                        continue;
+                            continue;
+                        }
+                        userAccount.Balance -= amount;
+                        String transaction = buildTransactionStatement("Withdrew ", amount, userAccount.Balance, username);
+                        Console.WriteLine(transaction);
+                        userAccount.History += transaction + "\n";
                     }
-                    userAccount.Balance -= amount;
-                    String transaction = buildTransactionStatement("Withdrew ", amount, userAccount.Balance, username);
-                    Console.WriteLine(transaction);
-                    userAccount.History += transaction + "\n";
+                    else
+                    {
+                        Console.WriteLine("Please enter a valid input next time.");
+                    }
 #if DEBUG
                     Console.WriteLine("Press enter to return to account menu...");
                     Console.ReadKey();
